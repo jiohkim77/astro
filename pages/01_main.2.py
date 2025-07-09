@@ -47,17 +47,18 @@ t_values = np.arange(0, total_time, time_step)
 
 # 애니메이션 설정
 fig, ax = plt.subplots()
+ax.set_xlim(0, total_time)
+ax.set_ylim(min_brightness - 1, max_brightness + 1)
+ax.set_title(f"{star_type} 변광성 밝기 변화 (주기: {period}일)")
+ax.set_xlabel("시간 (일)")
+ax.set_ylabel("밝기")
 
+# 애니메이션 함수
 def animate_brightness(i):
     t = i * time_step
     brightness = calculate_brightness(period, max_brightness, min_brightness, t, star_type)
-    ax.clear()
+    # 기존의 데이터를 덧붙여서 애니메이션을 그립니다.
     ax.plot(t_values[:i+1], [calculate_brightness(period, max_brightness, min_brightness, t, star_type) for t in t_values[:i+1]], color="blue")
-    ax.set_xlim(0, total_time)
-    ax.set_ylim(min_brightness - 1, max_brightness + 1)
-    ax.set_title(f"{star_type} 변광성 밝기 변화 (주기: {period}일)")
-    ax.set_xlabel("시간 (일)")
-    ax.set_ylabel("밝기")
 
 # 애니메이션 생성
 ani = FuncAnimation(fig, animate_brightness, frames=min(len(t_values), 200), interval=1000/fps)
