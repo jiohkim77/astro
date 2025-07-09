@@ -66,4 +66,4 @@ fig.update_layout(
 st.plotly_chart(fig)
 
 # GitHub에 배포 지침
-st.write("To deploy on GitHub, save this script as `stellar_evolution_app.py`, create a `requirements.txt` with `streamlit plotly numpy`, and use Streamlit Community Cloud.")
+st.write("To deploy on GitHub, save this script as `02_main3.py`, create a `requirements.txt` with `streamlit plotly numpy`, and use Streamlit Community Cloud.")
