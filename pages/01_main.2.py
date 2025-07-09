@@ -2,7 +2,8 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import io
+import tempfile
+import os
 import matplotlib
 matplotlib.use('Agg')  # 비대화형 백엔드 사용
 
@@ -59,18 +60,22 @@ def animate_brightness(i):
     ax.set_ylabel("밝기")
 
 # 애니메이션 생성
-ani = FuncAnimation(fig, animate_brightness, frames=len(t_values), interval=1000/fps)
+ani = FuncAnimation(fig, animate_brightness, frames=min(len(t_values), 200), interval=1000/fps)
 
-# 애니메이션 저장 및 표시
-buffer = io.BytesIO()
-try:
-    # GIF로 저장 (format 인자 제거)
-    ani.save(buffer, fps=fps, writer='pillow')
-    buffer.seek(0)
-    st.image(buffer, caption=f"{star_type} 변광성 밝기 변화 애니메이션")
-except Exception as e:
-    st.error(f"애니메이션 생성 중 오류 발생: {str(e)}")
-    st.write("애니메이션을 표시할 수 없습니다. 설정을 확인해 주세요.")
+# 임시 파일을 사용해 GIF 저장 및 표시
+with tempfile.NamedTemporaryFile(suffix='.gif', delete=False) as tmp_file:
+    try:
+        with st.spinner("애니메이션 생성 중..."):
+            ani.save(tmp_file.name, fps=fps, writer='pillow')
+        with open(tmp_file.name, 'rb') as f:
+            st.image(f.read(), caption=f"{star_type} 변광성 밝기 변화 애니메이션", use_column_width=True)
+    except Exception as e:
+        st.error(f"애니메이션 생성 중 오류 발생: {str(e)}")
+        st.write("애니메이션을 표시할 수 없습니다. 설정을 확인해 주세요.")
+    finally:
+        # 임시 파일 삭제
+        if os.path.exists(tmp_file.name):
+            os.unlink(tmp_file.name)
 
 # 주기-광도 관계 설명
 st.write("### 주기-광도 관계")
