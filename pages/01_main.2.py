@@ -4,16 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import io
 import matplotlib
-import subprocess
 matplotlib.use('Agg')  # 비대화형 백엔드 사용
-
-# FFmpeg 설치 확인 함수
-def check_ffmpeg():
-    try:
-        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, text=True)
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
 
 # 함수 정의: 변광성 밝기 계산
 def calculate_brightness(period, max_brightness, min_brightness, t, star_type):
@@ -70,29 +61,16 @@ def animate_brightness(i):
 # 애니메이션 생성
 ani = FuncAnimation(fig, animate_brightness, frames=len(t_values), interval=1000/fps)
 
-# FFmpeg 설치 확인
-if check_ffmpeg():
-    try:
-        # MP4로 저장 시도
-        buffer = io.BytesIO()
-        ani.save(buffer, format='mp4', fps=fps, writer='ffmpeg')
-        buffer.seek(0)
-        st.video(buffer)
-    except Exception as e:
-        st.error(f"MP4 생성 중 오류 발생: {str(e)}")
-        st.warning("MP4 생성에 실패했습니다. GIF로 전환하여 표시합니다.")
-        # GIF로 폴백
-        buffer = io.BytesIO()
-        ani.save(buffer, format='gif', fps=fps, writer='pillow')
-        buffer.seek(0)
-        st.image(buffer)
-else:
-    st.warning("FFmpeg가 설치되지 않았습니다. GIF로 표시합니다.")
-    # GIF로 저장
-    buffer = io.BytesIO()
-    ani.save(buffer, format='gif', fps=fps, writer='pillow')
+# 애니메이션 저장 및 표시
+buffer = io.BytesIO()
+try:
+    # GIF로 저장 (format 인자 제거)
+    ani.save(buffer, fps=fps, writer='pillow')
     buffer.seek(0)
-    st.image(buffer)
+    st.image(buffer, caption=f"{star_type} 변광성 밝기 변화 애니메이션")
+except Exception as e:
+    st.error(f"애니메이션 생성 중 오류 발생: {str(e)}")
+    st.write("애니메이션을 표시할 수 없습니다. 설정을 확인해 주세요.")
 
 # 주기-광도 관계 설명
 st.write("### 주기-광도 관계")
