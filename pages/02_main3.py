@@ -50,17 +50,13 @@ ax.invert_xaxis()
 scatter = ax.scatter([temp[0]], [lum[0]], s=[size[0]], c='red', label="Star")
 ax.legend()
 
-# 애니메이션 업데이트 함수
-def update(frame):
-    x = [temp[frame]]
-    y = [lum[frame]]
-    s = [size[frame]]  # 크기 변화 반영
-    scatter.set_offsets(np.c_[x, y])
-    scatter.set_sizes(s)
-    return scatter,
-
-# 애니메이션 생성
-ani = FuncAnimation(fig, update, frames=range(len(time)), interval=50, blit=True)
+# 애니메이션 시뮬레이션 (Streamlit에서 직접 업데이트)
+frame = st.slider("Animation Frame", 0, len(time)-1, 0)
+x = [temp[frame]]
+y = [lum[frame]]
+s = [size[frame]]
+scatter.set_offsets(np.c_[x, y])
+scatter.set_sizes(s)
 
 # Streamlit에 그래프 표시
 st.pyplot(fig)
