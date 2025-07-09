@@ -4,7 +4,16 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import io
 import matplotlib
+import subprocess
 matplotlib.use('Agg')  # 비대화형 백엔드 사용
+
+# FFmpeg 설치 확인 함수
+def check_ffmpeg():
+    try:
+        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, text=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 # 함수 정의: 변광성 밝기 계산
 def calculate_brightness(period, max_brightness, min_brightness, t, star_type):
@@ -12,7 +21,7 @@ def calculate_brightness(period, max_brightness, min_brightness, t, star_type):
         # RR Lyrae: 비대칭 톱니파 형태
         return (max_brightness - min_brightness) * (np.sin(2 * np.pi * t / period) ** 2) + min_brightness
     elif star_type == "맥동변광성":
-        # 맥동변광성: 더 부드러운 사인파
+        # 맥동변광성: 부드러운 사인파
         return (max_brightness - min_brightness) * np.sin(2 * np.pi * t / period) * 0.8 + (max_brightness + min_brightness) / 2
     else:
         # 세페이드: 기본 사인파
@@ -36,12 +45,12 @@ st.write({
 # 주기 및 밝기 범위 설정
 period = st.slider("주기 (일수)", 1, 500, 72)
 max_brightness = st.slider("최대 밝기", 0.0, 10.0, 8.0)
-min_brightness = st.slider("최소 밝기", 0.0, max_brightness, 4.0)  # 최소 밝기는 최대 밝기 이하로 제한
+min_brightness = st.slider("최소 밝기", 0.0, max_brightness, 4.0)
 fps = st.slider("애니메이션 속도 (FPS)", 5, 30, 20)
 
 # 시간 관련 변수 설정
-time_step = 0.1  # 시간 간격 (단위: 일)
-total_time = period * 2  # 두 주기 동안 애니메이션
+time_step = 0.1
+total_time = period * 2
 t_values = np.arange(0, total_time, time_step)
 
 # 애니메이션 설정
@@ -58,14 +67,32 @@ def animate_brightness(i):
     ax.set_xlabel("시간 (일)")
     ax.set_ylabel("밝기")
 
-# 애니메이션 생성 및 저장
-buffer = io.BytesIO()
+# 애니메이션 생성
 ani = FuncAnimation(fig, animate_brightness, frames=len(t_values), interval=1000/fps)
-ani.save(buffer, format='mp4', fps=fps, writer='ffmpeg')
-buffer.seek(0)
 
-# Streamlit에서 비디오 표시
-st.video(buffer)
+# FFmpeg 설치 확인
+if check_ffmpeg():
+    try:
+        # MP4로 저장 시도
+        buffer = io.BytesIO()
+        ani.save(buffer, format='mp4', fps=fps, writer='ffmpeg')
+        buffer.seek(0)
+        st.video(buffer)
+    except Exception as e:
+        st.error(f"MP4 생성 중 오류 발생: {str(e)}")
+        st.warning("MP4 생성에 실패했습니다. GIF로 전환하여 표시합니다.")
+        # GIF로 폴백
+        buffer = io.BytesIO()
+        ani.save(buffer, format='gif', fps=fps, writer='pillow')
+        buffer.seek(0)
+        st.image(buffer)
+else:
+    st.warning("FFmpeg가 설치되지 않았습니다. GIF로 표시합니다.")
+    # GIF로 저장
+    buffer = io.BytesIO()
+    ani.save(buffer, format='gif', fps=fps, writer='pillow')
+    buffer.seek(0)
+    st.image(buffer)
 
 # 주기-광도 관계 설명
 st.write("### 주기-광도 관계")
