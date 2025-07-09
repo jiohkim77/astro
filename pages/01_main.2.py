@@ -54,4 +54,3 @@ st.write(f"주기: {period}일")
 st.write(f"최대 밝기: {max_brightness}")
 st.write(f"최소 밝기: {min_brightness}")
 
-
