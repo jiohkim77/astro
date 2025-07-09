@@ -53,15 +53,20 @@ ax.set_title(f"{star_type} 변광성 밝기 변화 (주기: {period}일)")
 ax.set_xlabel("시간 (일)")
 ax.set_ylabel("밝기")
 
+# 초기 데이터 준비 (애니메이션 시작 시 그려질 데이터)
+line, = ax.plot([], [], color="blue")
+
 # 애니메이션 함수
 def animate_brightness(i):
     t = i * time_step
     brightness = calculate_brightness(period, max_brightness, min_brightness, t, star_type)
-    # 기존의 데이터를 덧붙여서 애니메이션을 그립니다.
-    ax.plot(t_values[:i+1], [calculate_brightness(period, max_brightness, min_brightness, t, star_type) for t in t_values[:i+1]], color="blue")
+    # 기존 데이터를 덧붙여서 애니메이션을 그립니다.
+    line.set_data(t_values[:i+1], [calculate_brightness(period, max_brightness, min_brightness, t, star_type) for t in t_values[:i+1]])
+
+    return line,  # 이 리턴이 있어야만 FuncAnimation이 제대로 작동합니다.
 
 # 애니메이션 생성
-ani = FuncAnimation(fig, animate_brightness, frames=min(len(t_values), 200), interval=1000/fps)
+ani = FuncAnimation(fig, animate_brightness, frames=min(len(t_values), 200), interval=1000/fps, blit=True)
 
 # 임시 파일을 사용해 GIF 저장 및 표시
 with tempfile.NamedTemporaryFile(suffix='.gif', delete=False) as tmp_file:
