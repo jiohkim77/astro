@@ -1,12 +1,10 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+import plotly.graph_objects as go
 
 # H-R 다이어그램 데이터 설정 (태양 질량 1 기준 생애 주기)
 def get_stellar_evolution():
     time = np.linspace(0, 1, 100)  # 정규화된 시간 (0~1)
-    # 단계별 데이터 (단순화된 모델)
     temp = np.zeros(100)
     lum = np.zeros(100)
     size = np.zeros(100)
@@ -39,27 +37,33 @@ st.title("Stellar Evolution on H-R Diagram")
 # 데이터 생성 (태양 질량 1로 고정)
 time, temp, lum, size = get_stellar_evolution()
 
-# Matplotlib Figure 설정
-fig, ax = plt.subplots()
-ax.set_xlabel("Temperature (K)")
-ax.set_ylabel("Luminosity (Solar Units)")
-ax.set_title("H-R Diagram - Stellar Evolution (1 Solar Mass)")
-ax.set_xlim(3000, 9000)  # 고정된 온도 범위
-ax.set_ylim(0, 120)  # 고정된 광도 범위
-ax.invert_xaxis()
-scatter = ax.scatter([temp[0]], [lum[0]], s=[size[0]], c='red', label="Star")
-ax.legend()
+# Plotly Figure 설정
+fig = go.Figure(
+    data=[go.Scatter(x=[temp[0]], y=[lum[0]], mode='markers', marker=dict(size=[size[0]], color='red'), name="Star")],
+    layout=go.Layout(
+        xaxis=dict(title="Temperature (K)", range=[9000, 3000], autorange=False),
+        yaxis=dict(title="Luminosity (Solar Units)", range=[0.001, 120], type="log", autorange=False),
+        title="H-R Diagram - Stellar Evolution (1 Solar Mass)",
+        showlegend=True
+    )
+)
 
-# 애니메이션 시뮬레이션 (Streamlit에서 직접 업데이트)
-frame = st.slider("Animation Frame", 0, len(time)-1, 0)
-x = [temp[frame]]
-y = [lum[frame]]
-s = [size[frame]]
-scatter.set_offsets(np.c_[x, y])
-scatter.set_sizes(s)
+# 프레임 데이터
+frames = [go.Frame(data=[go.Scatter(x=[temp[i]], y=[lum[i]], mode='markers', marker=dict(size=[size[i]], color='red'))]) for i in range(len(time))]
+fig.frames = frames
+
+# 자동 애니메이션 설정
+fig.update_layout(
+    updatemenus=[dict(
+        type="buttons",
+        buttons=[dict(label="Play",
+                      method="animate",
+                      args=[None, {"frame": {"duration": 50, "redraw": True}, "fromcurrent": True}])],
+    )]
+)
 
 # Streamlit에 그래프 표시
-st.pyplot(fig)
+st.plotly_chart(fig)
 
 # GitHub에 배포 지침
-st.write("To deploy on GitHub, save this script as `stellar_evolution_app.py`, create a `requirements.txt` with `streamlit matplotlib numpy`, and use Streamlit Community Cloud.")
+st.write("To deploy on GitHub, save this script as `stellar_evolution_app.py`, create a `requirements.txt` with `streamlit plotly numpy`, and use Streamlit Community Cloud.")
