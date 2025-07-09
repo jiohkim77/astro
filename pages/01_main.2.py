@@ -60,6 +60,10 @@ line, = ax.plot([], [], color="blue")
 def animate_brightness(i):
     t = i * time_step
     brightness = calculate_brightness(period, max_brightness, min_brightness, t, star_type)
+    
+    # 데이터가 y축 범위를 벗어날 수 있으므로, 동적으로 y축 범위를 조정
+    ax.set_ylim(min(min_brightness, brightness) - 1, max(max_brightness, brightness) + 1)
+    
     # 기존 데이터를 덧붙여서 애니메이션을 그립니다.
     line.set_data(t_values[:i+1], [calculate_brightness(period, max_brightness, min_brightness, t, star_type) for t in t_values[:i+1]])
 
