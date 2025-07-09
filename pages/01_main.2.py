@@ -2,11 +2,10 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import time
 
 # 함수 정의: 변광성 밝기 계산
 def calculate_brightness(period, max_brightness, min_brightness, t):
-    # 단순한 사인 파형을 이용한 밝기 계산
+    # 사인 파형을 이용한 밝기 계산
     return (max_brightness - min_brightness) * np.sin(2 * np.pi * t / period) + (max_brightness + min_brightness) / 2
 
 # 앱 설정
@@ -40,5 +39,19 @@ def animate_brightness(i):
     ax.set_ylabel("밝기")
 
 # 애니메이션 설정
-fig, ax
+fig, ax = plt.subplots()
+t_values = np.arange(0, total_time, time_step)
+brightness_values = [calculate_brightness(period, max_brightness, min_brightness, t) for t in t_values]
+
+ani = FuncAnimation(fig, animate_brightness, frames=len(t_values), interval=50)
+
+# 애니메이션 표시
+st.pyplot(fig)
+
+# 텍스트로 주기-광도 관계 설명
+st.write(f"선택된 변광성 유형: {star_type}")
+st.write(f"주기: {period}일")
+st.write(f"최대 밝기: {max_brightness}")
+st.write(f"최소 밝기: {min_brightness}")
+
 
