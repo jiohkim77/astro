@@ -25,9 +25,9 @@ fig, ax = plt.subplots()
 ax.set_xlabel("Temperature (K)")
 ax.set_ylabel("Luminosity (Solar Units)")
 ax.set_title("H-R Diagram - Stellar Evolution")
+ax.set_xlim(2000, 12000)  # 고정된 온도 범위
+ax.set_ylim(0, 120)  # 고정된 광도 범위
 ax.invert_xaxis()
-
-# 초기 데이터로 scatter 생성 (첫 번째 프레임 사용)
 scatter = ax.scatter([temp[0]], [lum[0]], s=[size[0]], c='red', label="Star")
 
 # 애니메이션 업데이트 함수
