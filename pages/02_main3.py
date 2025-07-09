@@ -15,7 +15,7 @@ def get_stellar_data(mass):
 st.title("Stellar Evolution on H-R Diagram")
 
 # 사용자 입력: 별의 질량
-mass = st.slider("Star Mass (Solar Masses)", 1.0, 10.0, 1.0)
+mass = st.slider("Star Mass (Solar Masses)", 1.0, 10.0, 4.71)
 
 # 데이터 생성
 time, temp, lum, size = get_stellar_data(mass)
@@ -26,16 +26,21 @@ ax.set_xlabel("Temperature (K)")
 ax.set_ylabel("Luminosity (Solar Units)")
 ax.set_title("H-R Diagram - Stellar Evolution")
 ax.invert_xaxis()
-scatter = ax.scatter([], [], s=size, c='red', label="Star")
+
+# 초기 데이터로 scatter 생성 (첫 번째 프레임 사용)
+scatter = ax.scatter([temp[0]], [lum[0]], s=[size[0]], c='red', label="Star")
 
 # 애니메이션 업데이트 함수
 def update(frame):
-    scatter.set_offsets(np.c_[temp[frame:frame+1], lum[frame:frame+1]])
-    scatter.set_sizes([size[frame]])
+    x = [temp[frame]]
+    y = [lum[frame]]
+    s = [size[frame]]  # 단일 크기 값으로 리스트로 전달
+    scatter.set_offsets(np.c_[x, y])
+    scatter.set_sizes(s)
     return scatter,
 
 # 애니메이션 생성
-ani = FuncAnimation(fig, update, frames=range(len(time)-1), interval=50, blit=True)
+ani = FuncAnimation(fig, update, frames=range(len(time)), interval=50, blit=True)
 
 # Streamlit에 그래프 표시
 st.pyplot(fig)
