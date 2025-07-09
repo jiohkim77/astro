@@ -15,7 +15,7 @@ st.title("변광성 주기 시뮬레이터")
 star_type = st.selectbox("변광성 유형을 선택하세요:", ["세페이드", "RR Lyrae", "맥동변광성"])
 
 # 주기 및 밝기 범위 설정
-period = st.slider("주기 (일수)", 1, 500, 30)
+period = st.slider("주기 (일수)", 1, 500, 72)  # 주기 설정 (기본값 72)
 max_brightness = st.slider("최대 밝기", 0.0, 10.0, 8.0)
 min_brightness = st.slider("최소 밝기", 0.0, 10.0, 4.0)
 
