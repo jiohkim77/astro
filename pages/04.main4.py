@@ -1,9 +1,11 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend for Streamlit
+import tempfile
+import os
 
 # Set page title
 st.title("Virtual Solar System: Star Radial Velocity and Orbital Animation")
@@ -99,14 +101,18 @@ def update(frame):
 # Create animation
 ani = FuncAnimation(fig_anim, update, init_func=init, frames=200, interval=50, blit=True)
 
-# Save animation to temporary file and display in Streamlit
-import io
-import base64
-buf = io.BytesIO()
-ani.save(buf, format="gif", writer="pillow", fps=20)
-buf.seek(0)
-data = base64.b64encode(buf.read()).decode("ascii")
-st.image(f"data:image/gif;base64,{data}")
+# Save animation to a temporary file
+try:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmp_file:
+        writer = PillowWriter(fps=20)
+        ani.save(tmp_file.name, writer=writer)
+        # Display animation in Streamlit
+        st.image(tmp_file.name)
+    # Clean up temporary file
+    os.unlink(tmp_file.name)
+except Exception as e:
+    st.error(f"Error creating animation: {str(e)}")
+    st.write("Please ensure Pillow is installed and compatible with Matplotlib.")
 
 # Display selected planets for radial velocity
 st.write(f"Selected planets for radial velocity: {', '.join(selected_planets) if selected_planets else 'None'}")
