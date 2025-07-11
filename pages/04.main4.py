@@ -30,9 +30,9 @@ for name, props in planets.items():
     st.write(f"- Orbital Period: {props['period']} days")
     st.write(f"- Semi-major Axis: {props['semi_major_axis']} AU")
 
-# User input: select planets for radial velocity
+# User input: select planets for radial velocity and animation
 selected_planets = st.multiselect(
-    "Select planets for radial velocity plot:",
+    "Select planets for radial velocity plot and animation:",
     list(planets.keys()),
     default=["Planet A"]
 )
@@ -64,55 +64,56 @@ ax_rv.grid(True)
 ax_rv.legend()
 st.pyplot(fig_rv)
 
-# Animation of planets orbiting the star
+# Animation of selected planets orbiting the star
 st.header("Planetary Orbits Animation")
 fig_anim, ax_anim = plt.subplots()
 ax_anim.set_xlim(-0.15, 0.15)
 ax_anim.set_ylim(-0.15, 0.15)
 ax_anim.set_xlabel("X (AU)")
 ax_anim.set_ylabel("Y (AU)")
-ax_anim.set_title("Orbit of Planets around Star X")
+ax_anim.set_title("Orbit of Selected Planets around Star X")
 ax_anim.grid(True)
 
 # Plot star at center
 star_plot, = ax_anim.plot(0, 0, 'o', color="yellow", markersize=15, label="Star X")
 
-# Initialize planet plots
+# Initialize planet plots for selected planets only
 planet_plots = {}
-for name in planets:
+for name in selected_planets:
     planet_plots[name], = ax_anim.plot([], [], 'o', color=planets[name]["color"], markersize=8, label=name)
 
+# Add legend (include star and selected planets)
 ax_anim.legend()
 
 # Animation functions
 def init():
-    for name in planets:
+    for name in selected_planets:
         planet_plots[name].set_data([], [])
     return [star_plot] + list(planet_plots.values())
 
 def update(frame):
-    for name, props in planets.items():
+    for name in selected_planets:
+        props = planets[name]
         t = frame * 0.05  # Scale time for animation
         x = props["semi_major_axis"] * np.cos(2 * np.pi * t / props["period"])
         y = props["semi_major_axis"] * np.sin(2 * np.pi * t / props["period"])
         planet_plots[name].set_data([x], [y])
     return [star_plot] + list(planet_plots.values())
 
-# Create animation
-ani = FuncAnimation(fig_anim, update, init_func=init, frames=200, interval=50, blit=True)
+# Create animation (only if planets are selected)
+if selected_planets:
+    ani = FuncAnimation(fig_anim, update, init_func=init, frames=200, interval=50, blit=True)
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmp_file:
+            writer = PillowWriter(fps=20)
+            ani.save(tmp_file.name, writer=writer)
+            st.image(tmp_file.name)
+        os.unlink(tmp_file.name)
+    except Exception as e:
+        st.error(f"Error creating animation: {str(e)}")
+        st.write("Please ensure Pillow is installed and compatible with Matplotlib.")
+else:
+    st.write("No planets selected. Please select at least one planet to view the animation.")
 
-# Save animation to a temporary file
-try:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmp_file:
-        writer = PillowWriter(fps=20)
-        ani.save(tmp_file.name, writer=writer)
-        # Display animation in Streamlit
-        st.image(tmp_file.name)
-    # Clean up temporary file
-    os.unlink(tmp_file.name)
-except Exception as e:
-    st.error(f"Error creating animation: {str(e)}")
-    st.write("Please ensure Pillow is installed and compatible with Matplotlib.")
-
-# Display selected planets for radial velocity
-st.write(f"Selected planets for radial velocity: {', '.join(selected_planets) if selected_planets else 'None'}")
+# Display selected planets
+st.write(f"Selected planets for radial velocity and animation: {', '.join(selected_planets) if selected_planets else 'None'}")
